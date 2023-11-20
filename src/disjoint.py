@@ -1,71 +1,49 @@
-import os
+def count_of_pairs(pairs):
+    tribes = [set(pairs[0])]
+    count = 0
 
-
-class DisjointSet:
-    def __init__(self, size):
-        self.parent = list(range(size))
-        self.rank = [0] * size
-
-    def find(self, x):
-        if self.parent[x] != x:
-            self.parent[x] = self.find(self.parent[x])
-        return self.parent[x]
-
-    def union(self, x, y):
-        root_x = self.find(x)
-        root_y = self.find(y)
-
-        if root_x != root_y:
-            if self.rank[root_x] > self.rank[root_y]:
-                self.parent[root_y] = root_x
+    for pair in pairs[1:]:
+        for tribe in tribes:
+            if any(person in tribe for person in pair):
+                tribe.update(pair)
+                break
             else:
-                self.parent[root_x] = root_y
-                if self.rank[root_x] == self.rank[root_y]:
-                    self.rank[root_y] += 1
+                tribes.append(set(pair))
+
+    for i in range(len(tribes)):
+        for j in range(i + 1, len(tribes)):
+            for first_person in tribes[i]:
+                for second_person in tribes[j]:
+                    if first_person % 2 != second_person % 2:
+                        count += 1
+
+    return count
 
 
-def count_cross_pairs(n, pairs):
-    boys_set = set()
-    girls_set = set()
+def read_input(filename):
+    with open(filename, 'r') as file:
+        lines = file.readlines()
 
-    for pair in pairs:
-        boy, girl = pair
-        boys_set.add(boy)
-        girls_set.add(girl)
+        N = int(lines[0])
+        pairs = [tuple(map(int, line.split())) for line in lines[1:]]
 
-    boys = list(boys_set)
-    girls = list(girls_set)
-
-    ds = DisjointSet(len(boys) + len(girls))
-
-    for boy, girl in pairs:
-        ds.union(boys.index(boy), len(boys) + girls.index(girl))
-
-    cross_pairs = 0
-    possible_pairs = []
-
-    for boy in boys_set:
-        for girl in girls_set:
-            if boy % 2 == 1 and girl % 2 == 0 and ds.find(boys.index(boy)) != ds.find(len(boys) + girls.index(girl)):
-                cross_pairs += 1
-                possible_pairs.append(f"{boy}/{girl}")
-
-    return cross_pairs, possible_pairs
+    return N, pairs
 
 
-def main():
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    output_file_path = os.path.join(script_dir, "output.txt")
+def write_output(filename, result):
+    with open(filename, 'w') as file:
+        file.write(str(result))
 
-    with open("input.txt", "r", encoding="utf-8") as file:
-        n = int(file.readline())
-        pairs = [list(map(int, line.split())) for line in file]
 
-    result, possible_pairs = count_cross_pairs(n, pairs)
+def main(input_filename, output_filename):
+    N, pairs = read_input(input_filename)
 
-    with open(output_file_path, "w") as output_file:
-        output_file.write(f"{result} (Можливі пари - {', '.join(possible_pairs)})\n")
+    result = count_of_pairs(pairs)
+    write_output(output_filename, result)
 
 
 if __name__ == "__main__":
-    main()
+    input_filename = 'input.txt'
+    output_filename = 'output.txt'
+
+    main(input_filename, output_filename)
